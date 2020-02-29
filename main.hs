@@ -32,14 +32,28 @@ cards = [0b00000000,0b00000001,0b00000010,
  0b10100100,0b10100101,0b10100110,
  0b10101000,0b10101001,0b10101010]
 
-aux:: Int -> Int -> Int
 aux x y | x == y = x
-          | (x + y) == 2 = 1
-          | (x + y) == 1 = 2
-          | otherwise = 0
+        | otherwise = 3 - (x+y)
 
 (.?.) x y = (shift (aux (shift ( x .&. 192) (-6)) (shift ( y .&. 192) (-6))) 6) .|.(shift (aux (shift ( x .&. 48) (-4)) (shift ( y .&. 48) (-4))) 4) .|. (shift (aux (shift ( x .&. 12) (-2)) (shift ( y .&. 12) (-2))) 2) .|. (aux ( x .&. 3) ( y .&. 3))
 
-checkSet x y z = (x .?. y) == z
+checkSet (x, y, z) = (x .?. y) == z
+
+pairs [] ys = []
+pairs (x:xs) ys = (map (pA x) ys) ++ pairs xs ys
+                 where pA x y = (x,y) 
+
+everyComb [] ys = []
+everyComb (x:xs) ys = (map (eCA x) ys) ++ everyComb xs ys
+                     where eCA x (y,z) = (x,y,z)
+
+noRep (x,y,z) = x /= y && x /= z && y /= z
+
+isNotConm (x,y,z) (a,b,c) = not( (x == a && y == b && z == c) || (x == a && y == c && z == b) || (x == b && y == a && z == c) || (x == b && y == c && z == a) || (x == c && y == a && z == b) || (x == c && y == b && z == a) )
+
+filterConm [] = []
+filterConm (x:xs) = x : filterConm (filter (isNotConm x) xs)
+
+set xs = filter checkSet ( filterConm ( filter noRep (everyComb xs (pairs xs xs))))
 
 main = undefined
